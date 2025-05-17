@@ -12,6 +12,13 @@
                     :isUser="message.sender === 'user'"
                     :timeStamp="message.createdAt"
                 />
+                <ChatBubble
+                    v-if="isGeneratingResponse"
+                    message="Đang xử lý..."
+                    :isUser="false"
+                    isTyping="true"
+                    :timeStamp="generatingTime"
+                />
                 <ChatBubble 
                     v-if="displayedBotMessage"
                     :message="displayedBotMessage"
@@ -59,17 +66,19 @@ export default {
         ]);
         const sessionID = ref('12321425')
         // API url test for PROD environment
-        const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
+        // const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
 
         // API url test for local environment
-        // const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-        // const apiUrl = `${apiBaseUrl}/dev/chat`;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const apiUrl = `${apiBaseUrl}/dev/chat`;
         
         const formattedApiResponse = ref('');
 
         const displayedBotMessage = ref('');
         const typingSpeed = ref(50);
         let typingInterval = null;
+        const isGeneratingResponse = ref(false);
+        const generatingTime = ref(null);
 
         const botMessageCreatedAt = ref(null);
 
@@ -100,11 +109,14 @@ export default {
                     clearInterval(typingInterval);
                     messages.value.push({ text: formattedApiResponse, sender: 'bot', createdAt: new Date() });
                     displayedBotMessage.value = '';
+                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi có response thật
                 }
             }, typingSpeed.value);
         };
 
         const sendMessageToApi = async (inputText) => {
+            isGeneratingResponse.value = true; // Hiển thị đoạn chat giả khi gửi request
+            generatingTime.value = new Date(); // Lưu thời điểm bắt đầu "đợi"
             try {
                 const bodyData = {
                     inputText: inputText,
@@ -123,6 +135,7 @@ export default {
                     const error = await apiResponse.json();
                     console.error('Lỗi gọi API:', error);
                     messages.value.push({ text: 'Đã có lỗi xảy ra khi giao tiếp với máy chủ.', sender: 'bot', createdAt: new Date() });
+                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi có lỗi
                     return;
                 }
 
@@ -137,14 +150,17 @@ export default {
                 if (responseData && responseData.response) {
                     formattedApiResponse.value = formatResponseToVietnamese(responseData.response);
                     displayedBotMessage.value = '';
+                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
                     startTypingEffect();
                     // messages.value.push({ text: formattedApiResponse, sender: 'bot' });
                 } else {
                     messages.value.push({ text: 'Không nhận được phản hồi hợp lệ từ máy chủ', sender: 'bot', createdAt: new Date() })
+                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
                 }
             } catch (error) {
                 console.error('Lỗi gọi API:', error);
                 messages.value.push({ text: 'Không thể kết nối đến máy chủ.', sender: 'bot', createdAt: new Date() });
+                isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
             }
         }
 
@@ -167,7 +183,8 @@ export default {
             formatResponseToVietnamese,
             formattedApiResponse,
             displayedBotMessage,
-            startTypingEffect
+            startTypingEffect,
+            isGeneratingResponse
         }
     }
 }
