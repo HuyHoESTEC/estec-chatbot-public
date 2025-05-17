@@ -1,6 +1,6 @@
 <template>
     <div class="chat-input">
-        <input class="input-message" type="text" v-on:keyup.enter="sendMessage" v-model="newMessage" placeholder="Hỏi bất cứ điều gì...">
+        <input class="input-message" type="text" v-on:keyup.enter="sendMessage" v-model="newMessage" placeholder="">
         <button v-on:click="sendMessage" :disabled="!newMessage.trim()">Gửi</button>
     </div>
 </template>

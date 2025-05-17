@@ -1,6 +1,6 @@
 <template>
     <div class="option-container">
-        <p>ESTEC CHATBOT PUBLIC</p>
+        <p>ESTEC CHATBOT</p>
         <div class="question-list">
             <div class="date-group" v-for="(group, index) in groupdedQuestions" :key="index">
                 <div class="group-label">
@@ -26,49 +26,49 @@ export default {
                 {
                     label: "Hôm nay",
                     items: [
-                        { title: "Dữ liệu đầu lò ngày 10/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu đầu lò ngày 14/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu GA01, GA02, GA03 ngày 10/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu GA01, GA02, GA03 ngày 13/03/2025 lúc 12:30:00" }
-                    ]
+                        { title: "Thông tin về GA03, GA01, GA02 NOx ngày 16/05/2025 lúc 22:15:00" },
+                        { title: "Xem dữ liệu NOx GA02, GA03, GA01 ngày 12/05/2025 lúc 07:03:00" },
+                        { title: "Hãy cho biết GA01, GA03, GA02 NOx ngày 05/05/2025 lúc 15:58:00" },
+                        { title: "Dữ liệu từ GA03, GA02, GA01 NOx ngày 28/04/2025 lúc 19:21:00" }
+                        ]
                 },
                 {
                     label: "7 ngày trước đó",
                     items: [
-                        { title: "Dữ liệu GA01, GA02, GA03 ngày 11/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu đầu lò ngày 27/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 26/05/2025" }
+                        { title: "Truy vấn NOx GA02, GA01, GA03 ngày 18/04/2025 lúc 03:47:00" },
+                        { title: "Thông số GA01, GA02, GA03 NOx ngày 09/04/2025 lúc 11:32:00" },
+                        { title: "Hiển thị NOx GA03, GA01, GA02 ngày 01/04/2025 lúc 16:09:00" },
+                        { title: "Giá trị GA02, GA03, GA01 NOx ngày 25/03/2025 lúc 09:55:00" }
                     ]
                 },
                 {
                     label: "30 ngày trước đó",
                     items: [
-                        { title: "Dữ liệu đầu lò ngày 26/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 04/06/2025" },
-                        { title: "Dữ liệu đầu lò ngày 17/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 30/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 22/05/2025" }
+                        { title: "Xin xem GA01, GA03, GA02 NOx ngày 20/03/2025 lúc 14:41:00" },
+                        { title: "Dữ liệu cảm biến NOx GA03, GA02, GA01 ngày 10/03/2025 lúc 12:30:00" },
+                        { title: "Thông tin từ NOx GA02, GA01, GA03 ngày 05/03/2025 lúc 20:17:00" },
+                        { title: "Báo cáo GA01, GA02, GA03 NOx ngày 28/02/2025 lúc 06:24:00" },
+                        { title: "Chi tiết về NOx GA03, GA01, GA02 ngày 19/02/2025 lúc 18:01:00" }
                     ]
                 },
                 {
                     label: "60 ngày trước đó",
                     items: [
-                        { title: "Dữ liệu GA01, GA02, GA03 ngày 11/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu đầu lò ngày 08/06/2025" },
-                        { title: "Dữ liệu đầu lò ngày 19/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 27/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 02/06/2025" },
-                        { title: "Dữ liệu đầu lò ngày 15/05/2025" }
+                        { title: "Kết quả GA02, GA03, GA01 NOx ngày 12/02/2025 lúc 01:39:00" },
+                        { title: "Thống kê NOx GA01, GA03, GA02 ngày 03/02/2025 lúc 23:16:00" },
+                        { title: "Dữ liệu đo NOx GA03, GA02, GA01 ngày 26/01/2025 lúc 10:53:00" },
+                        { title: "Xem thông tin GA02, GA01, GA03 NOx ngày 17/01/2025 lúc 08:31:00" },
+                        { title: "Giá trị đọc NOx GA01, GA02, GA03 ngày 09/01/2025 lúc 17:08:00" }
                     ]
                 },
                 {
                     label: "90 ngày trước đó",
                     items: [
-                        { title: "Dữ liệu GA01, GA02, GA03 ngày 11/03/2025 lúc 12:30:00" },
-                        { title: "Dữ liệu đầu lò ngày 31/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 24/05/2025" },
-                        { title: "Dữ liệu đầu lò ngày 06/06/2025" },
-                        { title: "Dữ liệu đầu lò ngày 21/05/2025" },
+                        { title: "Thông tin chi tiết GA03, GA01, GA02 NOx ngày 01/01/2025 lúc 04:46:00" },
+                        { title: "Dữ liệu thời gian thực NOx GA02, GA03, GA01 ngày 25/12/2024 lúc 21:23:00" },
+                        { title: "Xem nhanh dữ liệu GA01, GA02, GA03 NOx ngày 20/12/2024 lúc 09:30:00" },
+                        { title: "Thông tin cập nhật NOx GA03, GA02, GA01 ngày 15/12/2024 lúc 18:45:00" },
+                        { title: "Liệt kê GA02, GA01, GA03 NOx ngày 10/12/2024 lúc 02:00:00" }
                     ]
                 },
             ]
