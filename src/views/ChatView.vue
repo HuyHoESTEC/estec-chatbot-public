@@ -213,6 +213,31 @@ export default {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(2px);
+  scrollbar-width: thin; /* Cho Firefox */
+  scrollbar-color: #ccc #f1f1f1; /* Cho Firefox */
+}
+
+.chat-containert::-webkit-scrollbar {
+  width: 8px; /* Độ rộng của thanh cuộn */
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background-color: #ccc; /* Màu của "ngón tay" thanh cuộn */
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* Màu của "đường ray" thanh cuộn */
+}
+
+/* Ẩn thanh cuộn mặc định của WebKit (Chrome, Safari) khi không hover */
+.chat-container:hover::-webkit-scrollbar-thumb {
+  opacity: 1; /* Hiển thị khi hover */
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  opacity: 0; /* Ẩn mặc định */
+  transition: opacity 0.3s ease;
 }
 
 .chat-messages {

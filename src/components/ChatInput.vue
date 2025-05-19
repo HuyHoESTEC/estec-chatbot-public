@@ -16,12 +16,12 @@
       </div>
       <div class="option-group-box">
         <div class="group" v-if="selectedOption === 'ChatGPT'">
-          <input class="input-message" id="chatgpt-input" type="text" v-on:keyup.enter="sendMessage('ChatGPT', chatGPTInput)" v-model="chatGPTInput" placeholder="">
+          <textarea class="input-message" id="chatgpt-input" v-on:keyup.enter="handleEnter" v-model="chatGPTInput" placeholder="" />
           <button v-on:click="sendMessage('ChatGPT', chatGPTInput)" :disabled="!chatGPTInput.trim()">Gửi</button>
         </div>
 
         <div class="group" v-if="selectedOption === 'Factory'">
-          <input class="input-message" id="factory-input" type="text" v-on:keyup.enter="sendMessage('Factory', factoryInput)" v-model="factoryInput" placeholder="">
+          <textarea class="input-message" id="factory-input" v-on:keyup.enter="handleEnter" v-model="factoryInput" placeholder="" />
           <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim()">Gửi</button>
         </div>
       </div>
@@ -39,23 +39,45 @@ export default {
         const factoryInput = ref('');
         const selectedOption = ref('ChatGPT');
 
-        const sendMessage = (option, text) => {
-            if (text.trim()) {
-              if (option === 'ChatGPT') {
-                emit('send-message', chatGPTInput.value);
-                chatGPTInput.value = '';
-              } else if (option === 'Factory') {
-                emit('send-message', factoryInput.value);
-                factoryInput.value = '';
-              }
+        const sendMessage = (option) => {
+          let textToSend = '';
+          let inputToClear = null;
+
+          if (option === 'ChatGPT' && chatGPTInput.value.trim()) {
+            textToSend = chatGPTInput.value;
+            inputToClear = chatGPTInput;
+          } else if (option === 'Factory' && factoryInput.value.trim()) {
+            textToSend = factoryInput.value;
+            inputToClear = factoryInput;
+          }
+
+          if (textToSend) {
+            emit('send-message', textToSend);
+            if (inputToClear) {
+              inputToClear.value = '';
             }
+          }
+        };
+
+        const handleEnter = (event) => {
+          if (event.shiftKey) {
+            // Nếu Shift + Enter được nhấn, thêm một dòng mới vào textarea
+            newMessage.value += '\n';
+          } else {
+            if (document.activeElement.id === 'chatgpt-input' && chatGPTInput.value.trim()) {
+              sendMessage('ChatGPT');
+            } else if (document.activeElement.id === 'factory-input' && factoryInput.value.trim()) {
+              sendMessage('Factory');
+            }
+          }
         }
 
         return {
             chatGPTInput,
             factoryInput,
             selectedOption,
-            sendMessage
+            sendMessage,
+            handleEnter
         }
     }
 }
@@ -148,6 +170,11 @@ export default {
   width: 100%;
   box-sizing: border-box;
   height: 70px;
+  resize: none; /* Cho phép người dùng kéo để thay đổi chiều cao */
+  min-height: 40px; /* Chiều cao tối thiểu */
+  line-height: 1.5; /* Khoảng cách dòng */
+  overflow-y: auto; /* Hiển thị scrollbar khi nội dung vượt quá chiều cao */
+  white-space: pre-wrap; /* Giữ nguyên khoảng trắng và xuống dòng */
 }
 
 .input-message:hover,
