@@ -27,10 +27,6 @@
                     :timeStamp="botMessageCreatedAt"
                 />
             </div>
-            <div class="option-boxes-container">
-            <button class="option-box" @click="handleOptionClick('chatgpt')">ChatGPT</button>
-            <button class="option-box" @click="handleOptionClick('nhamay')">Nhà máy</button>
-        </div>
             <ChatInput @send-message="handleSendMessage" />
         </div>
         <div class="user-info-container">
@@ -240,24 +236,5 @@ export default {
 .user-info-container {
     width: 20%;
     height: 100vh;
-}
-.option-boxes-container {
-  padding: 8px 16px;
-  display: flex;
-  gap: 10px; /* Khoảng cách giữa các nút */
-  border-bottom: 1px solid #eee; /* Optional: Thêm đường kẻ dưới */
-}
-
-.option-box {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.option-box:hover {
-  background-color: #eee;
 }
 </style>
