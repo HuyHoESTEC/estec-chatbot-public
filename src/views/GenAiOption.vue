@@ -1,6 +1,11 @@
 <template>
     <div class="option-container">
-        <p>ESTEC CHATBOT</p>
+        <p>
+            <span class="estec-icon">
+                <img src="../assets/estec-icon.png" alt="Estec Logo">
+            </span>
+            ESTEC CHATBOT
+        </p>
         <div class="question-list">
             <div class="date-group" v-for="(group, index) in groupdedQuestions" :key="index">
                 <div class="group-label">
@@ -64,6 +69,18 @@ export default {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(9px);
 }
+
+.estec-icon {
+  margin-right: 2px; /* Khoảng cách giữa text và icon */
+  align-items: center; /* Căn chỉnh icon theo chiều dọc */
+}
+
+.estec-icon img {
+  height: 2em; /* Điều chỉnh kích thước icon theo chiều cao của text */
+  width: auto; /* Duy trì tỷ lệ khung hình */
+  vertical-align: middle; /* Căn chỉnh icon giữa dòng text */
+}
+
 
 .option-container > p {
     font-weight: bold;
