@@ -24,7 +24,6 @@ export default {
         return {
             groupdedQuestions: [
                 {
-                    label: "Hôm nay",
                     items: [
                         { title: "Thông tin về GA03, GA01, GA02 NOx ngày 16/05/2025 lúc 22:15:00" },
                         { title: "Xem dữ liệu NOx GA02, GA03, GA01 ngày 12/05/2025 lúc 07:03:00" },
@@ -33,7 +32,6 @@ export default {
                         ]
                 },
                 {
-                    label: "7 ngày trước đó",
                     items: [
                         { title: "Truy vấn NOx GA02, GA01, GA03 ngày 18/04/2025 lúc 03:47:00" },
                         { title: "Thông số GA01, GA02, GA03 NOx ngày 09/04/2025 lúc 11:32:00" },
@@ -42,7 +40,6 @@ export default {
                     ]
                 },
                 {
-                    label: "30 ngày trước đó",
                     items: [
                         { title: "Xin xem GA01, GA03, GA02 NOx ngày 20/03/2025 lúc 14:41:00" },
                         { title: "Dữ liệu cảm biến NOx GA03, GA02, GA01 ngày 10/03/2025 lúc 12:30:00" },
@@ -52,7 +49,6 @@ export default {
                     ]
                 },
                 {
-                    label: "60 ngày trước đó",
                     items: [
                         { title: "Kết quả GA02, GA03, GA01 NOx ngày 12/02/2025 lúc 01:39:00" },
                         { title: "Thống kê NOx GA01, GA03, GA02 ngày 03/02/2025 lúc 23:16:00" },
@@ -62,7 +58,6 @@ export default {
                     ]
                 },
                 {
-                    label: "90 ngày trước đó",
                     items: [
                         { title: "Thông tin chi tiết GA03, GA01, GA02 NOx ngày 01/01/2025 lúc 04:46:00" },
                         { title: "Dữ liệu thời gian thực NOx GA02, GA03, GA01 ngày 25/12/2024 lúc 21:23:00" },
