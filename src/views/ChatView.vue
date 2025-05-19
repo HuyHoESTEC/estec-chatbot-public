@@ -75,7 +75,7 @@ export default {
         const formattedApiResponse = ref('');
 
         const displayedBotMessage = ref('');
-        const typingSpeed = ref(50);
+        const typingSpeed = ref(30);
         let typingInterval = null;
         const isGeneratingResponse = ref(false);
         const generatingTime = ref(null);
@@ -148,11 +148,17 @@ export default {
 
                 // Xử lý dữ liệu phản hồi và thêm tin nhắn từ bot vào messages
                 if (responseData && responseData.response) {
-                    formattedApiResponse.value = formatResponseToVietnamese(responseData.response);
-                    displayedBotMessage.value = '';
-                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
-                    startTypingEffect();
+                    // formattedApiResponse.value = formatResponseToVietnamese(responseData.response);
+                    // displayedBotMessage.value = '';
+                    // isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
+                    // startTypingEffect();
                     // messages.value.push({ text: formattedApiResponse, sender: 'bot' });
+                    setTimeout(() => {
+                        formattedApiResponse.value = formatResponseToVietnamese(responseData.response);
+                        displayedBotMessage.value = '';
+                        isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
+                        startTypingEffect();
+                    }, 3000);
                 } else {
                     messages.value.push({ text: 'Không nhận được phản hồi hợp lệ từ máy chủ', sender: 'bot', createdAt: new Date() })
                     isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
