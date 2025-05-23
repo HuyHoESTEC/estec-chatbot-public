@@ -10,6 +10,9 @@
            {{ message }}
         </span>
       </span>
+      <div v-if="imageUrl && !isTyping" class="message-image-wrapper">
+        <img :src="imageUrl" alt="Bot response image" class="message-image" />
+      </div>
     </div>
     <div class="message-timestamp">
       {{ formatTime(timeStamp) }}
@@ -39,6 +42,10 @@ export default {
         timeStamp: {
           type: Date,
           default: () => new Date(),
+        },
+        imageUrl: {
+          type: String,
+          default: null
         }
     },
     setup(props) {
@@ -135,5 +142,18 @@ export default {
 .fade-in-on-type {
   opacity: 1;
   transition: opacity 0.1s linear; /* Có thể làm cho ký tự xuất hiện mượt hơn */
+}
+
+.message-image-wrapper {
+    margin-top: 10px; /* Khoảng cách giữa text và ảnh */
+    text-align: center; /* Căn giữa ảnh nếu cần */
+}
+
+.message-image {
+    max-width: 100%; /* Đảm bảo ảnh không tràn bubble */
+    height: auto;
+    border-radius: 8px; /* Bo góc ảnh */
+    display: block; /* Loại bỏ khoảng trống dưới ảnh */
+    margin: 0 auto; /* Căn giữa ảnh */
 }
 </style>
