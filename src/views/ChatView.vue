@@ -18,6 +18,7 @@
                         :isUser="message.sender === 'user'"
                         :timeStamp="message.createdAt"
                         :isTyping="message.sender === 'bot' && message.isTyping"
+                        :image-url="message.imageUrl"
                     />
                 </div>
                 <ChatInput @send-message="handleSendMessage" />
@@ -56,9 +57,17 @@ export default {
                 text: 'Tôi có thể giúp gì cho bạn ?',
                 sender: 'bot',
                 createdAt: new Date(Date.now() - 60000)
-            }
+            },
+            // {
+            //     text: 'Đây là một hình ảnh cho bạn',
+            //     sender: 'bot',
+            //     createdAt: new Date(Date.now() - 60000),
+            //     imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7nwbudohJPEtS11nvyrIg2CS_iL1maBWwpw&s'
+            // }
         ]);
         const sessionID = ref('12321425')
+        const mockImageUrl = 'https://images.squarespace-cdn.com/content/v1/55b6a6dce4b089e11621d3ed/62a2d66b-8435-4e41-8df9-262db165ed79/NPL+and+Reserves+combo+chart.png';
+        // const mockImageUrl = '';
         // API url test for PROD environment
         const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
 
@@ -110,6 +119,7 @@ export default {
             // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
             messageObject.text = '';
             messageObject.isTyping = true;
+            messageObject.imageUrl = mockImageUrl;
 
             // console.log('  messageObject.text after reset:', messageObject.text);
             // console.log('  messageObject.isTyping after set to true:', messageObject.isTyping);
@@ -146,7 +156,7 @@ export default {
 
         const sendMessageToApi = async (inputText) => {
             messages.value.push({ text: inputText, sender: 'user', createdAt: new Date() });
-            const newBotMessage = { text: '', sender: 'bot', createdAt: new Date(), isTyping: true };
+            const newBotMessage = { text: '', sender: 'bot', createdAt: new Date(), isTyping: true, imageUrl: null };
             messages.value.push(newBotMessage);
             const newBotMessageIndex = messages.value.length - 1;
 
