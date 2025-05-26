@@ -57,23 +57,20 @@ export default {
                 text: 'Tôi có thể giúp gì cho bạn ?',
                 sender: 'bot',
                 createdAt: new Date(Date.now() - 60000)
-            },
-            // {
-            //     text: 'Đây là một hình ảnh cho bạn',
-            //     sender: 'bot',
-            //     createdAt: new Date(Date.now() - 60000),
-            //     imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7nwbudohJPEtS11nvyrIg2CS_iL1maBWwpw&s'
-            // }
+            }
         ]);
-        const sessionID = ref('12321425')
-        const mockImageUrl = 'https://images.squarespace-cdn.com/content/v1/55b6a6dce4b089e11621d3ed/62a2d66b-8435-4e41-8df9-262db165ed79/NPL+and+Reserves+combo+chart.png';
-        // const mockImageUrl = '';
+        const sessionID = ref('12321425');
+        // const mockImageUrl = 'https://genai-s3-storage.s3.us-east-2.amazonaws.com/plots/19_Bubbleplot_2_Matplotlib-min.png';
         // API url test for PROD environment
         const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
 
         // API url test for local environment
         // const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
         // const apiUrl = `${apiBaseUrl}/dev/chat`;
+        const apiImgUrl = import.meta.env.VITE_API_IMG_URL || '';
+        const apiImg = `${apiImgUrl}/plots/19_Bubbleplot_2_Matplotlib-min.png`;
+        const mockImageUrl = apiImg;
+
         const isMobile = ref(false);
         const showIntroChatBot = ref(false);
         const showUserInfo = ref(false);

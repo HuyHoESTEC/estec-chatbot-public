@@ -17,6 +17,11 @@ export default defineConfig({
         target: 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, '')
+      },
+      '/img': {
+        target: 'https://genai-s3-storage.s3.us-east-2.amazonaws.com',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/img/, '')
       }
     }
   },
