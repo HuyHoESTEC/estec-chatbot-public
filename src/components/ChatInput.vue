@@ -1,19 +1,5 @@
 <template>
     <div class="chat-input-container">
-      <div class="option-toggle">
-        <button
-          v-on:click="selectedOption = 'ChatGPT'"
-          :class="{ active: selectedOption === 'ChatGPT' }"
-        >
-          ChatGPT
-        </button>
-        <button
-          v-on:click="selectedOption = 'Factory'"
-          :class="{ active: selectedOption === 'Factory' }"
-        >
-          Nhà Máy
-        </button>
-      </div>
       <div class="option-group-box">
         <div class="group" v-if="selectedOption === 'ChatGPT'">
           <textarea class="input-message" id="chatgpt-input" v-on:keyup.enter="handleEnter" v-model="chatGPTInput" placeholder="" />
@@ -24,6 +10,20 @@
           <textarea class="input-message" id="factory-input" v-on:keyup.enter="handleEnter" v-model="factoryInput" placeholder="" />
           <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim()">Gửi</button>
         </div>
+      </div>
+      <div class="option-toggle">
+        <button
+          v-on:click="selectedOption = 'ChatGPT'"
+          :class="{ active: selectedOption === 'ChatGPT' }"
+        >
+          🤖 ChatGPT
+        </button>
+        <button
+          v-on:click="selectedOption = 'Factory'"
+          :class="{ active: selectedOption === 'Factory' }"
+        >
+          🏭 Nhà Máy
+        </button>
       </div>
     </div>
 </template>
@@ -96,7 +96,6 @@ export default {
   gap: 10px;
   margin-bottom: 15px;
   padding-left: 20px;
-  padding-top: 10px;
 }
 
 .option-toggle button {
@@ -104,13 +103,13 @@ export default {
   border: 1px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
-  background-color: white;
+  background-color: whitesmoke;
+  border: none;
 }
 
 .option-toggle button.active {
   background-color: #2d2c72;
   color: white;
-  border-color: #2d2c72;
   border: none;
   outline: none;
 }
@@ -120,6 +119,7 @@ export default {
   flex-direction: column; /* Xếp các group theo chiều dọc */
   gap: 15px; /* Khoảng cách giữa các group */
   margin-bottom: 15px;
+  padding-top: 10px;
 }
 
 .group {

@@ -188,8 +188,7 @@ export default {
                     return;
                 }
                 const apiResponseTest = mockProductResponse
-
-                // const responseData = await apiResponseTest.json();
+                // const responseData = await apiResponse.json();
                 const responseData = await apiResponseTest;
                 console.log('Phản hồi từ API:', responseData);
 
