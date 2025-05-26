@@ -18,7 +18,7 @@
                         :isUser="message.sender === 'user'"
                         :timeStamp="message.createdAt"
                         :isTyping="message.sender === 'bot' && message.isTyping"
-                        :image-url="message.imageUrl"
+                        :imageUrl="message.imageUrl"
                     />
                 </div>
                 <ChatInput @send-message="handleSendMessage" />
@@ -37,6 +37,7 @@ import ChatBubble from '../components/ChatBubble.vue';
 import ChatInput from '../components/ChatInput.vue';
 import GenAiOption from './GenAiOption.vue';
 import UserInfo from './UserInfo.vue';
+import mockProductResponse from '../utils/Responses.json';
 
 export default {
     name: 'ChatView',
@@ -62,14 +63,12 @@ export default {
         const sessionID = ref('12321425');
         // const mockImageUrl = 'https://genai-s3-storage.s3.us-east-2.amazonaws.com/plots/19_Bubbleplot_2_Matplotlib-min.png';
         // API url test for PROD environment
-        const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
+        // const apiUrl = 'https://nv2muuac94.execute-api.us-east-2.amazonaws.com/dev/chat'
 
         // API url test for local environment
-        // const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-        // const apiUrl = `${apiBaseUrl}/dev/chat`;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const apiUrl = `${apiBaseUrl}/dev/chat`;
         const apiImgUrl = import.meta.env.VITE_API_IMG_URL || '';
-        const apiImg = `${apiImgUrl}/plots/19_Bubbleplot_2_Matplotlib-min.png`;
-        const mockImageUrl = apiImg;
 
         const isMobile = ref(false);
         const showIntroChatBot = ref(false);
@@ -116,7 +115,6 @@ export default {
             // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
             messageObject.text = '';
             messageObject.isTyping = true;
-            messageObject.imageUrl = mockImageUrl;
 
             // console.log('  messageObject.text after reset:', messageObject.text);
             // console.log('  messageObject.isTyping after set to true:', messageObject.isTyping);
@@ -189,18 +187,29 @@ export default {
 
                     return;
                 }
+                const apiResponseTest = mockProductResponse
 
-                const responseData = await apiResponse.json();
+                // const responseData = await apiResponseTest.json();
+                const responseData = await apiResponseTest;
                 console.log('Phản hồi từ API:', responseData);
 
                 // Xử lý dữ liệu phản hồi và thêm tin nhắn từ bot vào messages
-                if (responseData && responseData.response) {
-                    const formattedText = formatResponseToVietnamese(responseData.response);
+                if (responseData && responseData.response && responseData.imageUrl && responseData.action) {
+                    const formattedText = formatResponseToVietnamese(mockProductResponse.response);
                     // console.log('API response received:', responseData.response);
                     // console.log('Formatted text:', formattedText);
                     // console.log('Calling startTypingEffect with:', newBotMessage, formattedText);
                     startTypingEffect(newBotMessageIndex, formattedText);
                     // console.log(newBotMessage.isTyping);
+
+                    // Verify action of response to display image or not
+                    const resAction = responseData.action;
+                    let imgUrlRes = responseData.imageUrl;
+                    if (resAction === 'plotdashboard') {
+                        messages.value[newBotMessageIndex].imageUrl = `${apiImgUrl}/${imgUrlRes}`;
+                    } else if (resAction === 'query') {
+                        messages.value[newBotMessageIndex].imageUrl = '';
+                    }
                 } else {
                     console.warn('  API response.response is empty or invalid.');
                     // Cập nhật trực tiếp qua messages.value[index]
@@ -275,7 +284,6 @@ export default {
             typingSpeed,
             isGeneratingResponse,
             generatingTime
-
         }
     }
 }

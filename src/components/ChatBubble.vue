@@ -82,6 +82,7 @@ export default {
 
 .message-content {
   color: black;
+  white-space: pre-wrap;
 }
 
 .user-message {
