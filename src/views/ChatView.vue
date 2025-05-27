@@ -9,6 +9,9 @@
             <GenAiOption />
         </div>
         <div class="chat-main-content">
+            <div>
+                <p style="color: black">Status: <span :style="{ color: isConnected ? 'green' : 'red' }">{{ isConnected ? 'Connected' : 'Disconnected' }}</span></p>
+            </div>
             <div class="chat-container">
                 <div class="chat-messages">
                     <ChatBubble 
@@ -21,7 +24,7 @@
                         :imageUrl="message.imageUrl"
                     />
                 </div>
-                <ChatInput @send-message="handleSendMessage" />
+                <ChatInput @send-message="handleSendMessage" :isConnected="true" />
             </div>
         </div>
         <div :class="['user-info-container', { 'show-sidebar': showUserInfo }]">
@@ -33,11 +36,12 @@
 <script>
 
 import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
+import { useWebSocket } from '../services/useWebSocket';
 import ChatBubble from '../components/ChatBubble.vue';
 import ChatInput from '../components/ChatInput.vue';
 import GenAiOption from './GenAiOption.vue';
 import UserInfo from './UserInfo.vue';
-import mockProductResponse from '../utils/Responses.json';
+// import mockProductResponse from '../utils/Responses.json';
 
 export default {
     name: 'ChatView',
@@ -68,7 +72,14 @@ export default {
         // API url test for local environment
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
         const apiUrl = `${apiBaseUrl}/dev/chat`;
-        const apiImgUrl = import.meta.env.VITE_API_IMG_URL || '';
+        // const apiImgUrl = import.meta.env.VITE_API_IMG_URL || '';
+        
+        // Khởi tạo WebSocket service
+        const actionAPI = 'sendMessage';
+        const WS_URL = "wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev";
+        const { isConnected, messages: wsMessages, error: wsError, sendRequest } = useWebSocket(WS_URL);
+        console.log('isConnected value:', isConnected);
+        console.log('sendRequest value:', sendRequest);
 
         const isMobile = ref(false);
         const showIntroChatBot = ref(false);
@@ -76,7 +87,7 @@ export default {
 
         const userMessage = ref(''); // Input của người dùng
 
-        const typingSpeed = ref(30);
+        const typingSpeed = ref(20);
         let typingInterval = null; // Khai báo là let để có thể gán lại
         const isGeneratingResponse = ref(false);
         const generatingTime = ref(null);
@@ -99,15 +110,8 @@ export default {
         const startTypingEffect = (messageIndex, fullResponseText) => {
             const messageObject = messages.value[messageIndex];
 
-            // console.log('--- startTypingEffect called with index ---');
-            // console.log('  messageIndex:', messageIndex);
-            // console.log('  messageObject (from messages.value):', JSON.parse(JSON.stringify(messageObject)));
-            // console.log('  fullResponseText:', fullResponseText);
-            // console.log('  fullResponseText.length:', fullResponseText ? fullResponseText.length : 'N/A');
-
             if (typingInterval) {
                 clearInterval(typingInterval);
-                // console.log('  Cleared previous typingInterval.');
             }
 
             let charIndex = 0;
@@ -116,16 +120,10 @@ export default {
             messageObject.text = '';
             messageObject.isTyping = true;
 
-            // console.log('  messageObject.text after reset:', messageObject.text);
-            // console.log('  messageObject.isTyping after set to true:', messageObject.isTyping);
-
             if (!fullResponseText || fullResponseText.length === 0) {
-                // console.warn('  fullResponseText is empty or null, typing effect will not run.');
                 messageObject.text = fullResponseText || 'Không có nội dung phản hồi.';
                 messageObject.isTyping = false;
                 isGeneratingResponse.value = false;
-                // console.log('--- Typing effect FINISHED (empty response) ---');
-                // console.log('  Final messageObject:', JSON.parse(JSON.stringify(messageObject)));
                 return;
             }
 
@@ -150,79 +148,101 @@ export default {
         };
 
         const sendMessageToApi = async (inputText) => {
+            // 1. Thêm tin nhắn của người dùng
             messages.value.push({ text: inputText, sender: 'user', createdAt: new Date() });
+
+            // 2. Thêm tin nhắn bot placeholder với hiệu ứng typing BẬT
             const newBotMessage = { text: '', sender: 'bot', createdAt: new Date(), isTyping: true, imageUrl: null };
             messages.value.push(newBotMessage);
             const newBotMessageIndex = messages.value.length - 1;
 
-            // console.log('--- Send Message ---');
-            // console.log('User message added:', inputText);
-            // console.log('Bot placeholder added:', newBotMessage);
-            // console.log('Index of new bot message:', newBotMessageIndex);
-            // console.log('messages array after adding:', JSON.parse(JSON.stringify(messages.value)));
+            console.log('--- Send Message ---');
+            console.log('User message added:', inputText);
+            console.log('Bot placeholder added with isTyping: true. Index:', newBotMessageIndex);
 
             isGeneratingResponse.value = true;
             generatingTime.value = new Date(); // Lưu thời điểm bắt đầu "đợi"
+
+            // let accumulatedText = ''; // Để tích lũy văn bản stream
+
             try {
                 const bodyData = {
+                    action: actionAPI,
                     inputText: inputText,
                     sessionId: sessionID.value
                 };
-                const apiResponse = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(bodyData)
-                });
-                console.log('apiResponse:', apiResponse);
+                console.log('Preparing WebSocket request with payload data:', bodyData);
 
-                if (!apiResponse.ok) {
-                    const error = await apiResponse.json();
-                    console.error('Lỗi gọi API:', error);
-                    newBotMessage.text = 'Đã có lỗi xảy ra khi giao tiếp với máy chủ.';
-                    newBotMessage.isTyping = false;
-                    isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi có lỗi
-                    // console.log(newBotMessage.isTyping);
+                // Gửi request qua WebSocket. Callback onStream sẽ cập nhật text
+                // const apiResponse = await sendRequest(bodyData, (chunkText) => {
+                //     // Callback này sẽ được gọi mỗi khi nhận được một chunk từ server
+                //     accumulatedText += chunkText;
+                //     console.log('Chunk received:', chunkText, 'Accumulated:', accumulatedText);
+                //     messages.value[newBotMessageIndex].text = accumulatedText;
+                //     // messages.value[newBotMessageIndex].isTyping vẫn là true ở đây để giữ hiệu ứng gõ phím
+                // });
+                const apiResponse = await sendRequest(bodyData);
 
-                    return;
-                }
-                const apiResponseTest = mockProductResponse
-                // const responseData = await apiResponse.json();
-                const responseData = await apiResponseTest;
-                console.log('Phản hồi từ API:', responseData);
+                console.log('Phản hồi cuối cùng từ WebSocket:', apiResponse);
+                const responseData = apiResponse;
+                console.log("responseData (final):", responseData);
 
-                // Xử lý dữ liệu phản hồi và thêm tin nhắn từ bot vào messages
-                if (responseData && responseData.response && responseData.imageUrl && responseData.action) {
-                    const formattedText = formatResponseToVietnamese(mockProductResponse.response);
-                    // console.log('API response received:', responseData.response);
-                    // console.log('Formatted text:', formattedText);
-                    // console.log('Calling startTypingEffect with:', newBotMessage, formattedText);
-                    startTypingEffect(newBotMessageIndex, formattedText);
-                    // console.log(newBotMessage.isTyping);
+                // 3. Xử lý dữ liệu phản hồi cuối cùng
+                // Đảm bảo responseData.response là một chuỗi không rỗng
+                if (responseData && typeof responseData.response === 'string' && responseData.response.trim() !== '') {
+                    // const formattedText = formatResponseToVietnamese(responseData.response);
+                    // console.log('formattedText (final to display):', formattedText);
+                    startTypingEffect(newBotMessageIndex, responseData.response);
+                    
+                    // Cập nhật nội dung cuối cùng và TẮT hiệu ứng typing
+                    // messages.value[newBotMessageIndex].text = responseData.response;
+                    // messages.value[newBotMessageIndex].isTyping = false;
+                    isGeneratingResponse.value = false;
 
-                    // Verify action of response to display image or not
+                    // 4. Xử lý hình ảnh và hành động
                     const resAction = responseData.action;
-                    let imgUrlRes = responseData.imageUrl;
-                    if (resAction === 'plotdashboard') {
-                        messages.value[newBotMessageIndex].imageUrl = `${apiImgUrl}/${imgUrlRes}`;
-                    } else if (resAction === 'query') {
-                        messages.value[newBotMessageIndex].imageUrl = '';
+                    const imgUrlRes = responseData.imageUrl;
+
+                    console.log('--- Kiểm tra ảnh ---');
+                    console.log('responseData.action (từ backend):', resAction);
+                    console.log('responseData.imageUrl (từ backend):', imgUrlRes);
+
+                    if (imgUrlRes) {
+                        const fullImageUrl = `${imgUrlRes}`;
+                        messages.value[newBotMessageIndex].imageUrl = fullImageUrl;
+                        console.log('Đã gán imageUrl:', fullImageUrl);
+                    } else {
+                        messages.value[newBotMessageIndex].imageUrl = null; // Mặc định không có ảnh
+                        console.log('Action không phải "plotdashboard" hoặc imageUrl rỗng. Action:', resAction, 'Image URL:', imgUrlRes);
                     }
+                    console.log('--- Kết thúc kiểm tra ảnh ---');
+
                 } else {
-                    console.warn('  API response.response is empty or invalid.');
-                    // Cập nhật trực tiếp qua messages.value[index]
+                    console.warn('Phản hồi WebSocket không có cấu trúc hợp lệ (response):', responseData);
                     messages.value[newBotMessageIndex].text = 'Không nhận được phản hồi hợp lệ từ máy chủ.';
-                    messages.value[newBotMessageIndex].isTyping = false;
+                    messages.value[newBotMessageIndex].isTyping = false; // TẮT HIỆU ỨNG KHI LỖI HOẶC PHẢN HỒI RỖNG
                     isGeneratingResponse.value = false;
                 }
             } catch (error) {
-                console.error('Lỗi gọi API:', error);
-                newBotMessage.text =  'Không thể kết nối đến máy chủ.';
-                newBotMessage.isTyping = false;
-                isGeneratingResponse.value = false; // Ẩn đoạn chat giả khi không có response hợp lệ
+                console.error('Lỗi khi gửi/nhận qua WebSocket:', error);
+                // Giả định isConnected là một ref từ useWebSocket hook của bạn
+                if (!isConnected.value) { 
+                    messages.value[newBotMessageIndex].text = 'Kết nối đến máy chủ bị ngắt. Vui lòng thử lại hoặc tải lại trang.';
+                } else {
+                    messages.value[newBotMessageIndex].text = `Có lỗi xảy ra khi giao tiếp qua WebSocket: ${error.message || 'Không xác định'}`;
+                }
+                messages.value[newBotMessageIndex].isTyping = false; // TẮT HIỆU ỨNG KHI CÓ EXCEPTION
+                isGeneratingResponse.value = false;
+            } finally {
+                // Đảm bảo cờ isGeneratingResponse.value luôn được tắt cuối cùng
+                isGeneratingResponse.value = false;
+                // Đảm bảo isTyping được tắt nếu vì lý do nào đó nó vẫn đang bật
+                if (messages.value[newBotMessageIndex].isTyping) {
+                    messages.value[newBotMessageIndex].isTyping = false;
+                }
+                console.log('Kết thúc quá trình gửi tin nhắn. isTyping:', messages.value[newBotMessageIndex].isTyping);
             }
-        }
+        };
 
         const handleSendMessage = (newMessage) => {
             sendMessageToApi(newMessage);
@@ -282,7 +302,9 @@ export default {
             apiUrl,
             typingSpeed,
             isGeneratingResponse,
-            generatingTime
+            generatingTime,
+            isConnected,
+            actionAPI
         }
     }
 }
