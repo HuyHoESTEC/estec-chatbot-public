@@ -8,7 +8,7 @@
 
         <div class="group" v-if="selectedOption === 'Factory'">
           <textarea class="input-message" id="factory-input" v-on:keyup.enter="handleEnter" v-model="factoryInput" placeholder="" />
-          <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim()">Gửi</button>
+          <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim() || isConnected">Gửi</button>
         </div>
       </div>
       <div class="option-toggle">
@@ -34,6 +34,12 @@ import { ref } from 'vue';
 export default {
     name: 'ChatInput',
     emits: ['send-message'],
+    props: {
+      isConnected: {
+        type: Boolean,
+        default: false
+      }
+    },
     setup(_, { emit }) {
         const chatGPTInput = ref('');
         const factoryInput = ref('');
