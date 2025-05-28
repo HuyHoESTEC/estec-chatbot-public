@@ -10,6 +10,13 @@
         </div>
         <div class="chat-main-content">
             <div class="header-container">
+                <div class="model-selection">
+                    <label for="model-select" class="model-label">Chọn Model:</label>
+                    <select id="model-select" v-model="selectedModel" class="model-dropdown">
+                        <option value="Flash">1.0 Flash</option>
+                        <option value="Pro">1.0 Pro</option>
+                    </select>
+                </div>
                 <p class="status-text">
                     <span 
                         :class="['status-indicator', { 'is-connected': isConnected, 'is-disconnected': !isConnected }]"
@@ -22,7 +29,7 @@
                 </p>
             </div>
             <div class="chat-container">
-                <div class="chat-messages">
+                <div class="chat-messages" ref="messagesContainer">
                     <ChatBubble 
                         v-for="(message, index) in messages"
                         :key="index"
@@ -33,7 +40,10 @@
                         :imageUrl="message.imageUrl"
                     />
                 </div>
-                <ChatInput @send-message="handleSendMessage" :isConnected="true" />
+                <ChatInput 
+                    @send-message="handleSendMessage" 
+                    :is-generate-response="isGeneratingResponse" 
+                />
             </div>
         </div>
         <div :class="['user-info-container', { 'show-sidebar': showUserInfo }]">
@@ -44,7 +54,7 @@
 
 <script>
 
-import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useWebSocket } from '../services/useWebSocket';
 import ChatBubble from '../components/ChatBubble.vue';
 import ChatInput from '../components/ChatInput.vue';
@@ -85,8 +95,18 @@ export default {
         
         // Khởi tạo WebSocket service
         const actionAPI = 'sendMessage';
-        const WS_URL = "wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev";
-        const { isConnected, messages: wsMessages, error: wsError, sendRequest } = useWebSocket(WS_URL);
+        // const WS_URL = "wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev";
+        const MODEL_WEBSOCKET_URLS = {
+            Flash: 'wss://43vcec7hc4.execute-api.us-east-2.amazonaws.com/lite/',
+            Pro: 'wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev'
+        }
+        const selectedModel = ref('Pro'); // Model mặc định khi tải trang
+        // Computed property để lấy URL WebSocket dựa trên model đã chọn
+        const webSocketUrl = computed(() => {
+            return MODEL_WEBSOCKET_URLS[selectedModel.value] || MODEL_WEBSOCKET_URLS['Flash']; // Fallback về Flash nếu không tìm thấy
+        });
+
+        const { isConnected, messages: wsMessages, error: webSocketError, sendRequest } = useWebSocket(webSocketUrl);
         console.log('isConnected value:', isConnected);
         console.log('sendRequest value:', sendRequest);
 
@@ -100,6 +120,8 @@ export default {
         let typingInterval = null; // Khai báo là let để có thể gán lại
         const isGeneratingResponse = ref(false);
         const generatingTime = ref(null);
+        // const inputText = ref('');
+        const messagesContainer = ref(null); // Dùng để cuộn xuống dưới
 
         const formatResponseToVietnamese  = (response) => {
             try {
@@ -117,57 +139,61 @@ export default {
         }
 
         const startTypingEffect = (messageIndex, fullResponseText) => {
-            const messageObject = messages.value[messageIndex];
+            return new Promise(resolve => {
+                const messageObject = messages.value[messageIndex];
 
-            if (typingInterval) {
-                clearInterval(typingInterval);
-            }
-
-            let charIndex = 0;
-            // Đảm bảo tin nhắn bắt đầu rỗng và cờ isTyping là true
-            // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
-            messageObject.text = '';
-            messageObject.isTyping = true;
-
-            if (!fullResponseText || fullResponseText.length === 0) {
-                messageObject.text = fullResponseText || 'Không có nội dung phản hồi.';
-                messageObject.isTyping = false;
-                isGeneratingResponse.value = false;
-                return;
-            }
-
-            typingInterval = setInterval(() => {
-                if (charIndex < fullResponseText.length) {
-                    // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
-                    messageObject.text += fullResponseText[charIndex];
-                    charIndex++;
-                    // console.log('    Typing... current text:', messageObject.text);
-                } else {
+                if (typingInterval) {
                     clearInterval(typingInterval);
-                    // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
-                    messageObject.text = fullResponseText;
+                }
+
+                let charIndex = 0;
+                // Đảm bảo tin nhắn bắt đầu rỗng và cờ isTyping là true
+                // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
+                messageObject.text = ''; // Xóa text hiện tại để bắt đầu gõ
+                messageObject.isTyping = true;
+
+                if (!fullResponseText || fullResponseText.length === 0) {
+                    messageObject.text = fullResponseText || 'Không có nội dung phản hồi.';
                     messageObject.isTyping = false;
                     isGeneratingResponse.value = false;
-                    // console.log('--- Typing effect FINISHED (complete response) ---');
-                    // console.log('  Final messageObject:', JSON.parse(JSON.stringify(messageObject)));
+                    resolve(); // Giải quyết promise ngay lập tức
+                    return;
                 }
-            }, typingSpeed.value);
 
-            console.log('  setInterval initiated. typingInterval ID:', typingInterval);
+                typingInterval = setInterval(() => {
+                    if (charIndex < fullResponseText.length) {
+                        // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
+                        messageObject.text += fullResponseText[charIndex];
+                        charIndex++;
+                        nextTick(() => {
+                            scrollToBottom(); // Cuộn xuống khi mỗi ký tự được gõ
+                        })
+                    } else {
+                        clearInterval(typingInterval);
+                        // Cập nhật trực tiếp trên messageObject đã lấy từ mảng reactive
+                        messageObject.text = fullResponseText;
+                        messageObject.isTyping = false;
+                        isGeneratingResponse.value = false;
+                        scrollToBottom();
+                        resolve(); // Giải quyết promise khi hiệu ứng gõ phím kết thúc
+                    }
+                }, typingSpeed.value);
+            });
         };
 
         const sendMessageToApi = async (inputText) => {
+            // Đảm bảo không gửi tin nhắn rỗng và không gửi khi đang có phản hồi
+            if (!inputText.trim() || isGeneratingResponse.value) return;
+
             // 1. Thêm tin nhắn của người dùng
             messages.value.push({ text: inputText, sender: 'user', createdAt: new Date() });
+            scrollToBottom();
 
             // 2. Thêm tin nhắn bot placeholder với hiệu ứng typing BẬT
             const newBotMessage = { text: '', sender: 'bot', createdAt: new Date(), isTyping: true, imageUrl: null };
             messages.value.push(newBotMessage);
             const newBotMessageIndex = messages.value.length - 1;
-
-            console.log('--- Send Message ---');
-            console.log('User message added:', inputText);
-            console.log('Bot placeholder added with isTyping: true. Index:', newBotMessageIndex);
+            scrollToBottom(); // Cuộn xuống để thấy typing indicator
 
             isGeneratingResponse.value = true;
             generatingTime.value = new Date(); // Lưu thời điểm bắt đầu "đợi"
@@ -181,27 +207,17 @@ export default {
                     sessionId: sessionID.value
                 };
                 console.log('Preparing WebSocket request with payload data:', bodyData);
-
-                // Gửi request qua WebSocket. Callback onStream sẽ cập nhật text
-                // const apiResponse = await sendRequest(bodyData, (chunkText) => {
-                //     // Callback này sẽ được gọi mỗi khi nhận được một chunk từ server
-                //     accumulatedText += chunkText;
-                //     console.log('Chunk received:', chunkText, 'Accumulated:', accumulatedText);
-                //     messages.value[newBotMessageIndex].text = accumulatedText;
-                //     // messages.value[newBotMessageIndex].isTyping vẫn là true ở đây để giữ hiệu ứng gõ phím
-                // });
                 const apiResponse = await sendRequest(bodyData);
 
                 console.log('Phản hồi cuối cùng từ WebSocket:', apiResponse);
                 const responseData = apiResponse;
-                console.log("responseData (final):", responseData);
 
                 // 3. Xử lý dữ liệu phản hồi cuối cùng
                 // Đảm bảo responseData.response là một chuỗi không rỗng
                 if (responseData && typeof responseData.response === 'string' && responseData.response.trim() !== '') {
                     // const formattedText = formatResponseToVietnamese(responseData.response);
                     // console.log('formattedText (final to display):', formattedText);
-                    startTypingEffect(newBotMessageIndex, responseData.response);
+                    await startTypingEffect(newBotMessageIndex, responseData.response);
                     
                     // Cập nhật nội dung cuối cùng và TẮT hiệu ứng typing
                     // messages.value[newBotMessageIndex].text = responseData.response;
@@ -212,10 +228,6 @@ export default {
                     const resAction = responseData.action;
                     const imgUrlRes = responseData.imageUrl;
 
-                    console.log('--- Kiểm tra ảnh ---');
-                    console.log('responseData.action (từ backend):', resAction);
-                    console.log('responseData.imageUrl (từ backend):', imgUrlRes);
-
                     if (imgUrlRes) {
                         const fullImageUrl = `${imgUrlRes}`;
                         messages.value[newBotMessageIndex].imageUrl = fullImageUrl;
@@ -224,13 +236,13 @@ export default {
                         messages.value[newBotMessageIndex].imageUrl = null; // Mặc định không có ảnh
                         console.log('Action không phải "plotdashboard" hoặc imageUrl rỗng. Action:', resAction, 'Image URL:', imgUrlRes);
                     }
-                    console.log('--- Kết thúc kiểm tra ảnh ---');
 
                 } else {
                     console.warn('Phản hồi WebSocket không có cấu trúc hợp lệ (response):', responseData);
                     messages.value[newBotMessageIndex].text = 'Không nhận được phản hồi hợp lệ từ máy chủ.';
                     messages.value[newBotMessageIndex].isTyping = false; // TẮT HIỆU ỨNG KHI LỖI HOẶC PHẢN HỒI RỖNG
                     isGeneratingResponse.value = false;
+                    scrollToBottom();
                 }
             } catch (error) {
                 console.error('Lỗi khi gửi/nhận qua WebSocket:', error);
@@ -242,15 +254,26 @@ export default {
                 }
                 messages.value[newBotMessageIndex].isTyping = false; // TẮT HIỆU ỨNG KHI CÓ EXCEPTION
                 isGeneratingResponse.value = false;
+                scrollToBottom();
             } finally {
-                // Đảm bảo cờ isGeneratingResponse.value luôn được tắt cuối cùng
-                isGeneratingResponse.value = false;
                 // Đảm bảo isTyping được tắt nếu vì lý do nào đó nó vẫn đang bật
                 if (messages.value[newBotMessageIndex].isTyping) {
                     messages.value[newBotMessageIndex].isTyping = false;
                 }
+                // Đảm bảo cờ isGeneratingResponse.value luôn được tắt cuối cùng
+                isGeneratingResponse.value = false;
+                scrollToBottom();
                 console.log('Kết thúc quá trình gửi tin nhắn. isTyping:', messages.value[newBotMessageIndex].isTyping);
             }
+        };
+
+        // Hàm cuộn xuống cuối cùng
+        const scrollToBottom = () => {
+            nextTick(() => {
+                if (messagesContainer.value){
+                    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+                }
+            });
         };
 
         const handleSendMessage = (newMessage) => {
@@ -294,6 +317,19 @@ export default {
             clearInterval(typingInterval);
         })
 
+        // Theo dõi message để tự động cuộc xuống khi có tin nhắn mới
+        watch(messages, () => {
+            scrollToBottom();
+        }, { deep: true });
+
+        watch(webSocketError, (newError) => {
+            if (newError) {
+                console.error("WebSocket Connection Error:", newError.message);
+                // Có thể thêm một tin nhắn hệ thống vào chat để báo lỗi cho người dùng
+                // messages.value.push({ text: `[Lỗi Kết Nối] ${newError.message}`, sender: 'system', createdAt: new Date() });
+            }
+        });
+
         return {
             formatResponseToVietnamese,
             startTypingEffect,
@@ -313,7 +349,13 @@ export default {
             isGeneratingResponse,
             generatingTime,
             isConnected,
-            actionAPI
+            actionAPI,
+            MODEL_WEBSOCKET_URLS,
+            webSocketUrl,
+            messagesContainer,
+            scrollToBottom,
+            selectedModel,
+            // inputText
         }
     }
 }
@@ -518,8 +560,7 @@ export default {
   display: flex; /* Kích hoạt Flexbox */
   justify-content: space-between; /* Đẩy các phần tử ra hai đầu */
   align-items: center; /* Căn giữa theo chiều dọc */
-  padding: 10px 0; /* Thêm padding nếu cần */
-  margin-bottom: 15px; /* Khoảng cách dưới cùng của toàn bộ phần header */
+  padding: 5px 5px; /* Thêm padding nếu cần */
 }
 
 .status-text {
@@ -545,5 +586,32 @@ export default {
 
 .status-indicator.is-disconnected {
   background-color: red;
+}
+
+.model-selection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: black;
+}
+
+.model-label {
+  font-weight: bold;
+}
+
+.model-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.95rem; /* Điều chỉnh kích thước font */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.model-dropdown:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 </style>

@@ -8,7 +8,7 @@
 
         <div class="group" v-if="selectedOption === 'Factory'">
           <textarea class="input-message" id="factory-input" v-on:keyup.enter="handleEnter" v-model="factoryInput" placeholder="" />
-          <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim() || isConnected">Gửi</button>
+          <button v-on:click="sendMessage('Factory', factoryInput)" :disabled="!factoryInput.trim() || isGenerateResponse">Gửi</button>
         </div>
       </div>
       <div class="option-toggle">
@@ -36,6 +36,10 @@ export default {
     emits: ['send-message'],
     props: {
       isConnected: {
+        type: Boolean,
+        default: false
+      },
+      isGenerateResponse: {
         type: Boolean,
         default: false
       }
