@@ -9,8 +9,17 @@
             <GenAiOption />
         </div>
         <div class="chat-main-content">
-            <div>
-                <p style="color: black">Status: <span :style="{ color: isConnected ? 'green' : 'red' }">{{ isConnected ? 'Connected' : 'Disconnected' }}</span></p>
+            <div class="header-container">
+                <p class="status-text">
+                    <span 
+                        :class="['status-indicator', { 'is-connected': isConnected, 'is-disconnected': !isConnected }]"
+                    ></span>
+                    <span 
+                        :style="{ color: isConnected ? 'green' : 'red' }"
+                    >
+                        {{ isConnected ? 'Connected' : 'Disconnected' }}
+                    </span>
+                </p>
             </div>
             <div class="chat-container">
                 <div class="chat-messages">
@@ -503,5 +512,38 @@ export default {
     .chat-messages {
         padding: 10px;
     }
+}
+
+.header-container {
+  display: flex; /* Kích hoạt Flexbox */
+  justify-content: space-between; /* Đẩy các phần tử ra hai đầu */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  padding: 10px 0; /* Thêm padding nếu cần */
+  margin-bottom: 15px; /* Khoảng cách dưới cùng của toàn bộ phần header */
+}
+
+.status-text {
+  color: black; /* Màu chữ "Status:" */
+  display: flex; /* Để căn chỉnh chấm và chữ trên cùng một hàng */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  gap: 8px; /* Khoảng cách giữa "Status:", chấm, và chữ trạng thái */
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 12px; /* Kích thước chấm tròn */
+  height: 12px; /* Kích thước chấm tròn */
+  border-radius: 50%; /* Tạo hình tròn */
+  /* Các màu mặc định hoặc fallback */
+  background-color: gray; 
+  transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu mượt mà */
+}
+
+.status-indicator.is-connected {
+  background-color: green;
+}
+
+.status-indicator.is-disconnected {
+  background-color: red;
 }
 </style>
