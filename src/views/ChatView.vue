@@ -97,8 +97,8 @@ export default {
         const actionAPI = 'sendMessage';
         // const WS_URL = "wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev";
         const MODEL_WEBSOCKET_URLS = {
-            Flash: 'wss://43vcec7hc4.execute-api.us-east-2.amazonaws.com/lite/',
-            Pro: 'wss://498kkvw74b.execute-api.us-east-2.amazonaws.com/dev'
+            Flash: import.meta.env.VITE_API_SOCKET_FLASH,
+            Pro: import.meta.env.VITE_API_SOCKET_PRO
         }
         const selectedModel = ref('Pro'); // Model mặc định khi tải trang
         // Computed property để lấy URL WebSocket dựa trên model đã chọn
