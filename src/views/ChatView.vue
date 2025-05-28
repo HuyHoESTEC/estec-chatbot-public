@@ -38,6 +38,7 @@
                         :timeStamp="message.createdAt"
                         :isTyping="message.sender === 'bot' && message.isTyping"
                         :imageUrl="message.imageUrl"
+                        @image-clicked="openImageModal"
                     />
                 </div>
                 <ChatInput 
@@ -46,6 +47,11 @@
                 />
             </div>
         </div>
+        <ImageModal 
+            :image-url="currentZoomedImageUrl"
+            :is-visible="showImageModal"
+            @close="closeImageModal"
+        />
         <div :class="['user-info-container', { 'show-sidebar': showUserInfo }]">
             <UserInfo />
         </div>
@@ -60,6 +66,7 @@ import ChatBubble from '../components/ChatBubble.vue';
 import ChatInput from '../components/ChatInput.vue';
 import GenAiOption from './GenAiOption.vue';
 import UserInfo from './UserInfo.vue';
+import ImageModal from '../components/ImageModal.vue';
 // import mockProductResponse from '../utils/Responses.json';
 
 export default {
@@ -68,7 +75,8 @@ export default {
         ChatBubble,
         ChatInput,
         GenAiOption,
-        UserInfo
+        UserInfo,
+        ImageModal
     },
     setup() {
         const messages = ref([
@@ -122,6 +130,19 @@ export default {
         const generatingTime = ref(null);
         // const inputText = ref('');
         const messagesContainer = ref(null); // Dùng để cuộn xuống dưới
+
+        const showImageModal = ref(false);
+        const currentZoomedImageUrl = ref('');
+
+        const openImageModal = (imageUrl) => {
+            currentZoomedImageUrl.value = imageUrl;
+            showImageModal.value = true;
+        }
+
+        const closeImageModal = () => {
+            currentZoomedImageUrl.value = '';
+            showImageModal.value = false;
+        }
 
         const formatResponseToVietnamese  = (response) => {
             try {
@@ -355,7 +376,10 @@ export default {
             messagesContainer,
             scrollToBottom,
             selectedModel,
-            // inputText
+            showImageModal,
+            currentZoomedImageUrl,
+            openImageModal,
+            closeImageModal
         }
     }
 }

@@ -10,9 +10,19 @@
            {{ message }}
         </span>
       </span>
-      <div v-if="imageUrl && !isTyping" class="message-image-wrapper">
+      <!-- <div v-if="imageUrl && !isTyping" class="message-image-wrapper">
         <img :src="imageUrl" alt="Bot response image" class="message-image" />
-      </div>
+      </div> -->
+      <a
+        v-if="imageUrl && !isTyping"
+        :href="imageUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="message-image-wrapper"
+        @click.prevent="$emit('image-clicked', imageUrl)"  
+      >
+        <img :src="imageUrl" alt="Bot response image" class="message-image" />
+      </a>
     </div>
     <div class="message-timestamp">
       {{ formatTime(timeStamp) }}
@@ -26,6 +36,7 @@ import { watch } from 'vue';
 
 export default {
     name: 'ChatBubble',
+    emits: ['image-clicked'],
     props: {
         message: {
             type: String,
@@ -156,5 +167,10 @@ export default {
     border-radius: 8px; /* Bo góc ảnh */
     display: block; /* Loại bỏ khoảng trống dưới ảnh */
     margin: 0 auto; /* Căn giữa ảnh */
+    cursor: pointer;
+}
+
+.message-image:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
